@@ -3,7 +3,7 @@ version: "3.2"
 services:
   harvester-api:
     build: .
-    image: &app polkascan-harvester
+    image: &app polymesh-harvester:latest
     ports:
       - "8000:8000"
     volumes:
