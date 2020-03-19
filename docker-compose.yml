@@ -19,7 +19,7 @@ services:
       - DB_USERNAME=root
       - DB_PASSWORD=root
       - DB_NAME=polkascan
-      - SUBSTRATE_RPC_URL=http://78.47.58.121:9933/
+      - SUBSTRATE_RPC_URL=http://78.47.38.110:9933/
       - TYPE_REGISTRY=polymesh
       - SUBSTRATE_ADDRESS_TYPE=2
     depends_on:
