@@ -58,12 +58,12 @@ services:
   redis:
     image: redis:3.2.11
 
-    mysql:
-      image: mysql:latest
-      volumes:
-        - "./data/mysql:/var/lib/mysql"
-      ports:
-        - "33061:3306"
-      environment:
-        - MYSQL_ROOT_PASSWORD=root
-        - MYSQL_DATABASE=polkascan
+  mysql:
+    image: mysql:latest
+    volumes:
+      - "./data/mysql:/var/lib/mysql"
+    ports:
+      - "33061:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=polkascan
