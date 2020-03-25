@@ -27,6 +27,7 @@ services:
       - DB_USERNAME=admin
       - DB_PASSWORD=Y5maT2dUsE59BBVe
       - DB_NAME=polymesh-harvester
+      - TYPE_REGISTRY=polymesh
       - SUBSTRATE_RPC_URL=http://78.47.38.110:9933/
       - SUBSTRATE_ADDRESS_TYPE=2
 
