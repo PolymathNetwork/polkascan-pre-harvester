@@ -184,7 +184,7 @@ def rebuilding_search_index(self, search_index_id, truncate=False):
 
 
 @app.task(base=BaseTask, bind=True)
-def start_harvester(self, check_gaps=True):
+def start_harvester(self, check_gaps=False):
 
     substrate = SubstrateInterface(SUBSTRATE_RPC_URL)
 
