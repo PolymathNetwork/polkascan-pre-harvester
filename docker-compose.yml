@@ -28,8 +28,9 @@ services:
       - DB_PASSWORD=Y5maT2dUsE59BBVe
       - DB_NAME=polymesh-harvester
       - TYPE_REGISTRY=polymesh
-      - SUBSTRATE_RPC_URL=http://78.47.38.110:9933/
+      - SUBSTRATE_RPC_URL=http://78.47.162.27:5933/
       - SUBSTRATE_ADDRESS_TYPE=2
+      - SUBSTRATE_STORAGE_INDICES=Accounts
 
   harvester-worker:
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest

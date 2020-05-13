@@ -22,6 +22,7 @@ services:
       - TYPE_REGISTRY=polymesh
       - SUBSTRATE_RPC_URL=http://78.47.38.110:9933/
       - SUBSTRATE_ADDRESS_TYPE=2
+      - SUBSTRATE_STORAGE_INDICES=Accounts
     depends_on:
       - redis
       - mysql
