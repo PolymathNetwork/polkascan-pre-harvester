@@ -25,7 +25,7 @@ alembic upgrade head
 echo "Running gunicorn..."
 
 if [ "$ENVIRONMENT" = "dev" ]; then
-    gunicorn -b 0.0.0.0:8001 --workers=2 app.main:app --reload --timeout 600
+    gunicorn -b 0.0.0.0:8000 --workers=2 app.main:app --reload --timeout 600
 fi
 
 if [ "$ENVIRONMENT" = "prod" ]; then
