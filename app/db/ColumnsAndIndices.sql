@@ -1,11 +1,14 @@
 ALTER TABLE `polymesh-harvester`.data_event 
-ADD COLUMN `event_arg_0` varchar(100) GENERATED ALWAYS AS (SUBSTRING(attributes->>'$[0].value', 0, 99)) STORED NULL AFTER `attributes`;  
+ADD COLUMN `event_arg_0` varchar(100) GENERATED ALWAYS AS (attributes->>'$[0].value') STORED NULL AFTER `attributes`;  
 
 ALTER TABLE `polymesh-harvester`.data_event 
-ADD COLUMN `event_arg_1` varchar(100) GENERATED ALWAYS AS (SUBSTRING(attributes->>'$[1].value', 0, 99)) STORED NULL AFTER `event_arg_0`;  
+ADD COLUMN `event_arg_1` varchar(100) GENERATED ALWAYS AS (attributes->>'$[1].value') STORED NULL AFTER `event_arg_0`;  
 
 ALTER TABLE `polymesh-harvester`.data_event 
-ADD COLUMN `event_arg_2` varchar(100) GENERATED ALWAYS AS (SUBSTRING(attributes->>'$[2].value', 0, 99)) STORED NULL AFTER `event_arg_1`;  
+ADD COLUMN `event_arg_2` varchar(100) GENERATED ALWAYS AS (attributes->>'$[2].value') STORED NULL AFTER `event_arg_1`;  
+
+ALTER TABLE `polymesh-harvester-dev`.data_event 
+ADD COLUMN `event_arg_3` varchar(100) GENERATED ALWAYS AS (attributes->>'$[3].value') STORED NULL AFTER `event_arg_2`;  
 
 ALTER TABLE `polymesh-harvester`.data_event 
 ADD COLUMN `claim_type` varchar(30) GENERATED ALWAYS AS (JSON_UNQUOTE(JSON_EXTRACT(JSON_KEYS(attributes, '$[1].value.claim'), '$[0]'))) STORED NULL AFTER `event_arg_2`;  
