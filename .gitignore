@@ -103,3 +103,6 @@ data/
 # mypy
 .mypy_cache/
 .idea
+
+
+.env.*
