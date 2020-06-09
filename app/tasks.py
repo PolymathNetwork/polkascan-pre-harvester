@@ -49,8 +49,13 @@ app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 app.conf.beat_schedule = {
     'check-head-10-seconds': {
         'task': 'app.tasks.start_harvester',
-        'schedule': 10.0,
+        'schedule': 2.0,
         'args': ()
+    },
+    'check-gaps-60-seconds': {
+        'task': 'app.tasks.start_harvester',
+        'schedule': 60.0,
+        'args': [True]
     },
 }
 
