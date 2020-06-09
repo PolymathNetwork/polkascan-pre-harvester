@@ -52,9 +52,9 @@ app.conf.beat_schedule = {
         'schedule': 2.0,
         'args': ()
     },
-    'check-gaps-60-seconds': {
+    'check-gaps-120-seconds': {
         'task': 'app.tasks.start_harvester',
-        'schedule': 60.0,
+        'schedule': 120.0,
         'args': [True]
     },
 }
