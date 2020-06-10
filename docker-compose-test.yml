@@ -14,7 +14,7 @@ services:
     logging:
       driver: awslogs
       options:
-        awslogs-group: polymesh-harvester
+        awslogs-group: polymesh-harvester-test
         awslogs-region: us-east-2
         awslogs-stream-prefix: harvester-api
     environment: &env
@@ -37,13 +37,13 @@ services:
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest
     volumes:
       - "/usr/src/app"
-    command: celery -A app.tasks worker --concurrency=4 --loglevel=INFO
+    command: celery -A app.tasks worker --concurrency=8 --loglevel=INFO
     links:
       - redis
     logging:
       driver: awslogs
       options:
-        awslogs-group: polymesh-harvester
+        awslogs-group: polymesh-harvester-test
         awslogs-region: us-east-2
         awslogs-stream-prefix: worker
     environment: *env
@@ -59,7 +59,7 @@ services:
     logging:
       driver: awslogs
       options:
-        awslogs-group: polymesh-harvester
+        awslogs-group: polymesh-harvester-test
         awslogs-region: us-east-2
         awslogs-stream-prefix: beat
     environment: *env
@@ -74,7 +74,7 @@ services:
     logging:
       driver: awslogs
       options:
-        awslogs-group: polymesh-harvester
+        awslogs-group: polymesh-harvester-test
         awslogs-region: us-east-2
         awslogs-stream-prefix: monitor
 
@@ -86,6 +86,6 @@ services:
     logging:
       driver: awslogs
       options:
-        awslogs-group: polymesh-harvester
+        awslogs-group: polymesh-harvester-test
         awslogs-region: us-east-2
         awslogs-stream-prefix: redis

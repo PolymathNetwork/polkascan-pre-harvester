@@ -25,7 +25,7 @@ ALTER TABLE `polymesh-harvester`.data_event
 ADD COLUMN `claim_issuer` varchar(66) GENERATED ALWAYS AS (attributes->>'$[1].value.claim_issuer') STORED NULL AFTER `claim_scope`;  
 
 ALTER TABLE `polymesh-harvester`.data_event 
-ADD COLUMN `claim_expiry` varchar(10) GENERATED ALWAYS AS (
+ADD COLUMN `claim_expiry` varchar(15) GENERATED ALWAYS AS (
 	CASE
     WHEN attributes->>'$[1].value.expiry' = 'null' THEN null
     ELSE attributes->>'$[1].value.expiry'
