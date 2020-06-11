@@ -37,7 +37,7 @@ services:
     image: 414255671868.dkr.ecr.us-east-2.amazonaws.com/polymesh-harvester:latest
     volumes:
       - "/usr/src/app"
-    command: celery -A app.tasks worker --concurrency=2 --loglevel=INFO
+    command: celery -A app.tasks worker --concurrency=4 --loglevel=INFO
     links:
       - redis
     logging:
