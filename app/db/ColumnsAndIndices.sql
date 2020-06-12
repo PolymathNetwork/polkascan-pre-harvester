@@ -7,7 +7,7 @@ ADD COLUMN `event_arg_1` varchar(100) GENERATED ALWAYS AS (attributes->>'$[1].va
 ALTER TABLE `polymesh-harvester`.data_event 
 ADD COLUMN `event_arg_2` varchar(100) GENERATED ALWAYS AS (attributes->>'$[2].value') STORED NULL AFTER `event_arg_1`;  
 
-ALTER TABLE `polymesh-harvester-dev`.data_event 
+ALTER TABLE `polymesh-harvester`.data_event 
 ADD COLUMN `event_arg_3` varchar(100) GENERATED ALWAYS AS (attributes->>'$[3].value') STORED NULL AFTER `event_arg_2`;  
 
 ALTER TABLE `polymesh-harvester`.data_event 
