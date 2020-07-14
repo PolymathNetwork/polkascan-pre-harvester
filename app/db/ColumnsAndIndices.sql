@@ -11,7 +11,12 @@ ALTER TABLE `polymesh-harvester`.data_event
 ADD COLUMN `event_arg_3` varchar(100) GENERATED ALWAYS AS (attributes->>'$[3].value') STORED NULL AFTER `event_arg_2`;  
 
 ALTER TABLE `polymesh-harvester`.data_event 
-ADD COLUMN `claim_type` varchar(30) GENERATED ALWAYS AS (JSON_UNQUOTE(JSON_EXTRACT(JSON_KEYS(attributes, '$[1].value.claim'), '$[0]'))) STORED NULL AFTER `event_arg_2`;  
+ADD COLUMN `claim_type` varchar(30) GENERATED ALWAYS AS (
+    CASE 
+    WHEN JSON_UNQUOTE(JSON_EXTRACT(JSON_KEYS(attributes, '$[1].value.claim'), '$[0]')) = 'Whitelisted' THEN 'Exempted'
+    WHEN JSON_UNQUOTE(JSON_EXTRACT(JSON_KEYS(attributes, '$[1].value.claim'), '$[0]')) = 'Blacklisted' THEN 'Blocked'
+    ELSE JSON_UNQUOTE(JSON_EXTRACT(JSON_KEYS(attributes, '$[1].value.claim'), '$[0]'))
+END) STORED NULL AFTER `event_arg_3`;  
 
 ALTER TABLE `polymesh-harvester`.data_event 
 ADD COLUMN `claim_scope` varchar(66) GENERATED ALWAYS AS (
@@ -36,6 +41,8 @@ CREATE INDEX ix_data_event_event_arg_0 ON `polymesh-harvester`.data_event (event
 CREATE INDEX ix_data_event_event_arg_1 ON `polymesh-harvester`.data_event (event_arg_1); 
 
 CREATE INDEX ix_data_event_event_arg_2 ON `polymesh-harvester`.data_event (event_arg_2); 
+
+CREATE INDEX ix_data_event_event_arg_3 ON `polymesh-harvester`.data_event (event_arg_3); 
 
 CREATE INDEX ix_data_event_claim_type ON `polymesh-harvester`.data_event (claim_type); 
 
