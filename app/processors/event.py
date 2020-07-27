@@ -32,7 +32,7 @@ from app.settings import ACCOUNT_AUDIT_TYPE_NEW, ACCOUNT_AUDIT_TYPE_REAPED, ACCO
     IDENTITY_JUDGEMENT_TYPE_GIVEN
 
 from scalecodec.exceptions import RemainingScaleBytesNotEmptyException
-from substrateinterface import SubstrateInterface
+from substrateinterface import SubstrateInterface, StorageFunctionNotFound
 
 
 class NewSessionEventProcessor(EventProcessor):
@@ -45,21 +45,26 @@ class NewSessionEventProcessor(EventProcessor):
         nominators = []
 
         # Retrieve current era
-        current_era = self.substrate.get_runtime_state(
-            module="Staking",
-            storage_function="CurrentEra",
-            params=[],
-            block_hash=self.block.hash
-        ).get('result')
+        try:
+            current_era = self.substrate.get_runtime_state(
+                module="Staking",
+                storage_function="CurrentEra",
+                params=[],
+                block_hash=self.block.hash
+            ).get('result')
+        except StorageFunctionNotFound:
+            current_era = None
 
         # Retrieve validators for new session from storage
-
-        validators = self.substrate.get_runtime_state(
-            module="Session",
-            storage_function="Validators",
-            params=[],
-            block_hash=self.block.hash
-        ).get('result', [])
+        try:
+            validators = self.substrate.get_runtime_state(
+                module="Session",
+                storage_function="Validators",
+                params=[],
+                block_hash=self.block.hash
+            ).get('result', [])
+        except StorageFunctionNotFound:
+            validators = []
 
         for rank_nr, validator_account in enumerate(validators):
             validator_ledger = {}
@@ -68,34 +73,43 @@ class NewSessionEventProcessor(EventProcessor):
             validator_stash = validator_account.replace('0x', '')
 
             # Retrieve controller account
-            validator_controller = self.substrate.get_runtime_state(
-                module="Staking",
-                storage_function="Bonded",
-                params=[validator_account],
-                block_hash=self.block.hash
-            ).get('result')
+            try:
+                validator_controller = self.substrate.get_runtime_state(
+                    module="Staking",
+                    storage_function="Bonded",
+                    params=[validator_account],
+                    block_hash=self.block.hash
+                ).get('result')
 
-            if validator_controller:
-                validator_controller = validator_controller.replace('0x', '')
+                if validator_controller:
+                    validator_controller = validator_controller.replace('0x', '')
+            except StorageFunctionNotFound:
+                validator_controller = None
 
             # Retrieve validator preferences for stash account
-            validator_prefs = self.substrate.get_runtime_state(
-                module="Staking",
-                storage_function="ErasValidatorPrefs",
-                params=[current_era, validator_account],
-                block_hash=self.block.hash
-            ).get('result')
+            try:
+                validator_prefs = self.substrate.get_runtime_state(
+                    module="Staking",
+                    storage_function="ErasValidatorPrefs",
+                    params=[current_era, validator_account],
+                    block_hash=self.block.hash
+                ).get('result')
+            except StorageFunctionNotFound:
+                validator_prefs = None
 
             if not validator_prefs:
                 validator_prefs = {'commission': None}
 
             # Retrieve bonded
-            exposure = self.substrate.get_runtime_state(
-                module="Staking",
-                storage_function="ErasStakers",
-                params=[current_era, validator_account],
-                block_hash=self.block.hash
-            ).get('result')
+            try:
+                exposure = self.substrate.get_runtime_state(
+                    module="Staking",
+                    storage_function="ErasStakers",
+                    params=[current_era, validator_account],
+                    block_hash=self.block.hash
+                ).get('result')
+            except StorageFunctionNotFound:
+                exposure = None
 
             if not exposure:
                 exposure = {}
@@ -1217,13 +1231,12 @@ class CouncilMemberKicked(EventProcessor):
 
     def process_search_index(self, db_session):
 
-        for member_struct in self.event.attributes[0]['value']:
-            search_index = self.add_search_index(
-                index_type_id=settings.SEARCH_INDEX_COUNCIL_MEMBER_KICKED,
-                account_id=member_struct['account'].replace('0x', '')
-            )
+        search_index = self.add_search_index(
+            index_type_id=settings.SEARCH_INDEX_COUNCIL_MEMBER_KICKED,
+            account_id=self.event.attributes[0]['value'].replace('0x', '')
+        )
 
-            search_index.save(db_session)
+        search_index.save(db_session)
 
 
 class CouncilMemberRenounced(EventProcessor):
@@ -1233,13 +1246,12 @@ class CouncilMemberRenounced(EventProcessor):
 
     def process_search_index(self, db_session):
 
-        for member_struct in self.event.attributes[0]['value']:
-            search_index = self.add_search_index(
-                index_type_id=settings.SEARCH_INDEX_COUNCIL_CANDIDACY_RENOUNCED,
-                account_id=member_struct['account'].replace('0x', '')
-            )
+        search_index = self.add_search_index(
+            index_type_id=settings.SEARCH_INDEX_COUNCIL_CANDIDACY_RENOUNCED,
+            account_id=self.event.attributes[0]['value'].replace('0x', '')
+        )
 
-            search_index.save(db_session)
+        search_index.save(db_session)
 
 
 class CouncilProposedEventProcessor(EventProcessor):

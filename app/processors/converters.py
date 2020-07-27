@@ -18,6 +18,8 @@
 #
 #  converters.py
 import json
+import logging
+
 import math
 
 from app import settings
@@ -26,18 +28,25 @@ from sqlalchemy import func, distinct
 from sqlalchemy.exc import SQLAlchemyError
 from app.models.harvester import Status
 from app.processors import NewSessionEventProcessor, Log, SlashEventProcessor, BalancesTransferProcessor
-from scalecodec.base import ScaleBytes, ScaleDecoder
+from scalecodec.base import ScaleBytes, ScaleDecoder, RuntimeConfiguration
 from scalecodec.exceptions import RemainingScaleBytesNotEmptyException
 from scalecodec.block import ExtrinsicsDecoder
 
 from app.processors.base import BaseService, ProcessorRegistry
-from scalecodec.type_registry import load_type_registry_preset
-from substrateinterface import SubstrateInterface, SubstrateRequestException, xxh128
+from scalecodec.type_registry import load_type_registry_file
+from substrateinterface import SubstrateInterface, SubstrateRequestException, xxh128, logger
 
 from app.models.data import Extrinsic, Block, Event, Runtime, RuntimeModule, RuntimeCall, RuntimeCallParam, \
     RuntimeEvent, RuntimeEventAttribute, RuntimeType, RuntimeStorage, BlockTotal, RuntimeConstant, AccountAudit, \
     AccountIndexAudit, ReorgBlock, ReorgExtrinsic, ReorgEvent, ReorgLog, RuntimeErrorMessage, Account, \
     AccountInfoSnapshot, SearchIndex
+
+
+if settings.DEBUG:
+    # Set Logger level to Debug
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    logger.addHandler(ch)
 
 
 class HarvesterCouldNotAddBlock(Exception):
@@ -54,10 +63,19 @@ class BlockIntegrityError(Exception):
 
 class PolkascanHarvesterService(BaseService):
 
-    def __init__(self, db_session, type_registry='default'):
+    def __init__(self, db_session, type_registry='default', type_registry_file=None):
         self.db_session = db_session
-        self.substrate = SubstrateInterface(settings.SUBSTRATE_RPC_URL, type_registry_preset=type_registry)
-        self.type_registry = type_registry
+
+        if type_registry_file:
+            custom_type_registry = load_type_registry_file(type_registry_file)
+        else:
+            custom_type_registry = None
+
+        self.substrate = SubstrateInterface(
+            url=settings.SUBSTRATE_RPC_URL,
+            type_registry=custom_type_registry,
+            type_registry_preset=type_registry
+        )
         self.metadata_store = {}
 
     def process_genesis(self, block):
@@ -201,7 +219,11 @@ class PolkascanHarvesterService(BaseService):
             runtime = Runtime.query(self.db_session).get(spec_version)
 
             if runtime:
-                self.metadata_store[spec_version] = self.substrate.get_block_metadata(block_hash=block_hash)
+
+                if spec_version in self.substrate.metadata_cache:
+                    self.metadata_store[spec_version] = self.substrate.metadata_cache[spec_version]
+                else:
+                    self.metadata_store[spec_version] = self.substrate.get_block_metadata(block_hash=block_hash)
 
             else:
                 self.db_session.begin(subtransactions=True)
@@ -230,7 +252,7 @@ class PolkascanHarvesterService(BaseService):
 
                     print('store version to db', self.substrate.metadata_decoder.version)
 
-                    for module in self.substrate.metadata_decoder.metadata.modules:
+                    for module_index, module in enumerate(self.substrate.metadata_decoder.metadata.modules):
 
                         # Check if module exists
                         if RuntimeModule.query(self.db_session).filter_by(
@@ -396,6 +418,7 @@ class PolkascanHarvesterService(BaseService):
                                 runtime_error = RuntimeErrorMessage(
                                     spec_version=spec_version,
                                     module_id=module_id,
+                                    module_index=module_index,
                                     index=idx,
                                     name=error.name,
                                     documentation='\n'.join(error.docs)
@@ -504,7 +527,13 @@ class PolkascanHarvesterService(BaseService):
         events = []
 
         try:
+            # TODO implemented solution in substrate interface for runtime transition blocks
+            # Events are decoded against runtime of parent block
+            RuntimeConfiguration().set_active_spec_version_id(parent_spec_version)
             events_decoder = self.substrate.get_block_events(block_hash, self.metadata_store[parent_spec_version])
+
+            # Revert back to current runtime
+            RuntimeConfiguration().set_active_spec_version_id(block.spec_version_id)
 
             event_idx = 0
 
@@ -1050,6 +1079,36 @@ class PolkascanHarvesterService(BaseService):
             account_info_obj.save(self.db_session)
         except ValueError:
             pass
+
+    def update_account_balances(self):
+        # set balances according to most recent snapshot
+        account_info = self.db_session.execute("""
+                        select
+                           a.account_id, 
+                           a.balance_total,
+                           a.balance_free,
+                           a.balance_reserved,
+                           a.nonce
+                    from
+                         data_account_info_snapshot as a
+                    inner join (
+                        select 
+                            account_id, max(block_id) as max_block_id 
+                        from data_account_info_snapshot 
+                        group by account_id
+                    ) as b
+                    on a.account_id = b.account_id and a.block_id = b.max_block_id
+                    """)
+
+        for account_id, balance_total, balance_free, balance_reserved, nonce in account_info:
+            Account.query(self.db_session).filter_by(id=account_id).update(
+                {
+                    Account.balance_total: balance_total,
+                    Account.balance_free: balance_free,
+                    Account.balance_reserved: balance_reserved,
+                    Account.nonce: nonce,
+                }, synchronize_session='fetch'
+            )
 
 
 
