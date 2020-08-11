@@ -1,0 +1,628 @@
+{
+  "types": {
+    "IdentityId": "H256",
+    "Ticker": "[u8; 12]",
+    "(u32, u32)": {
+      "type": "struct",
+      "type_mapping": [
+        ["u32", "u32"],
+        ["u32", "u32"]
+      ]
+    },
+    "PosRatio": "(u32, u32)",
+    "DocumentName": "String",
+    "DocumentUri": "String",
+    "DocumentHash": "String",
+    "Document": {
+      "type": "struct",
+      "type_mapping": [
+        ["name", "DocumentName"],
+        ["uri", "DocumentUri"],
+        ["content_hash", "DocumentHash"]
+      ]
+    },
+    "AssetType": {
+      "type": "enum",
+      "type_mapping": [
+        ["Equity", "Null"],
+        ["Debt", "Null"],
+        ["Commodity", "Null"],
+        ["StructuredProduct", "Null"],
+        ["Custom", "Vec<u8>"]
+      ]
+    },
+    "IdentifierType": {
+      "type": "enum",
+      "type_mapping": [
+        ["Cins", "Null"],
+        ["Cusip", "Null"],
+        ["Isin", "Null"]
+      ]
+    },
+    "TokenName": "String",
+    "AssetIdentifier": "String",
+    "FundingRoundName": "String",
+    "SecurityToken": {
+      "type": "struct",
+      "type_mapping": [
+        ["name", "TokenName"],
+        ["total_supply", "Balance"],
+        ["owner_did", "IdentityId"],
+        ["divisible", "bool"],
+        ["asset_type", "AssetType"],
+        ["link_id", "u64"]
+      ]
+    },
+    "LinkedKeyInfo": {
+      "type": "enum",
+      "type_mapping": [
+        ["Unique", "IdentityId"],
+        ["Group", "Vec<IdentityId>"]
+      ]
+    },
+    "AccountKey": "[u8; 32]",
+    "Permission": {
+      "type": "enum",
+      "value_list": ["Full", "Admin", "Operator", "SpendFunds"]
+    },
+    "Link": {
+      "type": "struct",
+      "type_mapping": [
+        ["link_data", "LinkData"],
+        ["expiry", "Option<Moment>"],
+        ["link_id", "u64"]
+      ]
+    },
+    "LinkData": {
+      "type": "enum",
+      "type_mapping": [
+        ["DocumentOwned", "Document"],
+        ["TickerOwned", "Ticker"],
+        ["TokenOwned", "Ticker"]
+      ]
+    },
+    "SignatoryType": {
+      "type": "enum",
+      "value_list": ["External", "Identity", "MultiSig", "Relayer"]
+    },
+    "Signatory": {
+      "type": "enum",
+      "type_mapping": [
+        ["Identity", "IdentityId"],
+        ["AccountKey", "AccountKey"]
+      ]
+    },
+    "SigningItem": {
+      "type": "struct",
+      "type_mapping": [
+        ["signer", "Signatory"],
+        ["signer_type", "SignatoryType"],
+        ["permissions", "Vec<Permission>"]
+      ]
+    },
+    "SigningItemWithAuth": {
+      "type": "struct",
+      "type_mapping": [
+        ["signing_item", "SigningItem"],
+        ["auth_signature", "Signature"]
+      ]
+    },
+    "IdentityRole": {
+      "type": "enum",
+      "value_list": [
+        "Issuer",
+        "SimpleTokenIssuer",
+        "Validator",
+        "ClaimIssuer",
+        "Investor",
+        "NodeRunner",
+        "PM",
+        "CDDAMLClaimIssuer",
+        "AccreditedInvestorClaimIssuer",
+        "VerifiedIdentityClaimIssuer"
+      ]
+    },
+    "PreAuthorizedKeyInfo": {
+      "type": "struct",
+      "type_mapping": [
+        ["target_id", "IdentityId"],
+        ["signing_item", "SigningItem"]
+      ]
+    },
+    "DidRecord": {
+      "type": "struct",
+      "type_mapping": [
+        ["roles", "Vec<IdentityRole>"],
+        ["master_key", "AccountKey"],
+        ["signing_items", "Vec<SigningItem>"]
+      ]
+    },
+    "JurisdictionName": "String",
+    "Scope": "IdentityId",
+    "Claim": {
+      "type": "enum",
+      "type_mapping": [
+        ["Accredited", "Scope"],
+        ["Affiliate", "Scope"],
+        ["BuyLockup", "Scope"],
+        ["SellLockup", "Scope"],
+        ["CustomerDueDiligence", "Null"],
+        ["KnowYourCustomer", "Scope"],
+        ["Jurisdiction", "(JurisdictionName, Scope)"],
+        ["Whitelisted", "Scope"],
+        ["Blacklisted", "Scope"],
+        ["NoData", "Null"]
+      ]
+    },
+    "ClaimType": {
+      "type": "enum",
+      "type_mapping": [
+        ["Accredited", "Null"],
+        ["Affiliate", "Null"],
+        ["BuyLockup", "Null"],
+        ["SellLockup", "Null"],
+        ["CustomerDueDiligence", "Null"],
+        ["KnowYourCustomer", "Null"],
+        ["Jurisdiction", "Null"],
+        ["Whitelisted", "Null"],
+        ["Blacklisted", "Null"],
+        ["NoType", "Null"]
+      ]
+    },
+    "IdentityClaim": {
+      "type": "struct",
+      "type_mapping": [
+        ["claim_issuer", "IdentityId"],
+        ["issuance_date", "Moment"],
+        ["last_update_date", "Moment"],
+        ["expiry", "Option<Moment>"],
+        ["claim", "Claim"]
+      ]
+    },
+    "IdentityClaimKey": {
+      "type": "struct",
+      "type_mapping": [
+        ["id", "IdentityId"],
+        ["claim_type", "ClaimType"]
+      ]
+    },
+    "AssetTransferRule": {
+      "type": "struct",
+      "type_mapping": [
+        ["sender_rules", "Vec<Rule>"],
+        ["receiver_rules", "Vec<Rule>"],
+        ["rule_id", "u32"]
+      ]
+    },
+    "RuleType": {
+      "type": "enum",
+      "type_mapping": [
+        ["IsPresent", "Claim"],
+        ["IsAbsent", "Claim"],
+        ["IsAnyOf", "Vec<Claim>"],
+        ["IsNoneOf", "Vec<Claim>"]
+      ]
+    },
+    "Rule": {
+      "type": "struct",
+      "type_mapping": [
+        ["rule_type", "RuleType"],
+        ["issuers", "Vec<IdentityId>"]
+      ]
+    },
+    "STO": {
+      "type": "struct",
+      "type_mapping": [
+        ["beneficiary_did", "IdentityId"],
+        ["cap", "Balance"],
+        ["sold", "Balance"],
+        ["rate", "u64"],
+        ["start_date", "Moment"],
+        ["end_date", "Moment"],
+        ["active", "bool"]
+      ]
+    },
+    "Investment": {
+      "type": "struct",
+      "type_mapping": [
+        ["investor_did", "IdentityId"],
+        ["amount_paid", "Balance"],
+        ["tokens_purchased", "Balance"],
+        ["last_purchase_date", "Moment"]
+      ]
+    },
+    "SimpleTokenRecord": {
+      "type": "struct",
+      "type_mapping": [
+        ["ticker", "Ticker"],
+        ["total_supply", "Balance"],
+        ["owner_did", "IdentityId"]
+      ]
+    },
+    "FeeOf": "Balance",
+    "Dividend": {
+      "type": "struct",
+      "type_mapping": [
+        ["amount", "Balance"],
+        ["active", "bool"],
+        ["maturates_at", "Option<u64>"],
+        ["expires_at", "Option<u64>"],
+        ["payout_currency", "Option<Ticker>"],
+        ["checkpoint_id", "u64"]
+      ]
+    },
+    "TargetIdAuthorization": {
+      "type": "struct",
+      "type_mapping": [
+        ["target_id", "IdentityId"],
+        ["nonce", "u64"],
+        ["expires_at", "Moment"]
+      ]
+    },
+    "TickerRegistration": {
+      "type": "struct",
+      "type_mapping": [
+        ["owner", "IdentityId"],
+        ["expiry", "Option<Moment>"],
+        ["link_id", "u64"]
+      ]
+    },
+    "TickerRegistrationConfig": {
+      "type": "struct",
+      "type_mapping": [
+        ["max_ticker_length", "u8"],
+        ["registration_length", "Option<Moment>"]
+      ]
+    },
+    "SignData": {
+      "type": "struct",
+      "type_mapping": [
+        ["custodian_did", "IdentityId"],
+        ["holder_did", "IdentityId"],
+        ["ticker", "Ticker"],
+        ["value", "Balance"],
+        ["nonce", "u16"]
+      ]
+    },
+    "MotionTitle": "String",
+    "MotionInfoLink": "String",
+    "Motion": {
+      "type": "struct",
+      "type_mapping": [
+        ["title", "MotionTitle"],
+        ["info_link", "MotionInfoLink"],
+        ["choices", "Vec<MotionTitle>"]
+      ]
+    },
+    "Ballot": {
+      "type": "struct",
+      "type_mapping": [
+        ["checkpoint_id", "u64"],
+        ["voting_start", "Moment"],
+        ["voting_end", "Moment"],
+        ["motions", "Vec<Motion>"]
+      ]
+    },
+    "Url": "String",
+    "Beneficiary": {
+      "type": "struct",
+      "type_mapping": [
+        ["id", "IdentityId"],
+        ["amount", "Balance"]
+      ]
+    },
+    "PipDescription": "String",
+    "PipsMetadata": {
+      "type": "struct",
+      "type_mapping": [
+        ["proposer", "AccountKey"],
+        ["id", "PipId"],
+        ["end", "u32"],
+        ["url", "Option<Url>"],
+        ["description", "Option<PipDescription>"],
+        ["cool_off_until", "u32"],
+        ["beneficiaries", "Vec<Beneficiary>"]
+      ]
+    },
+    "DepositInfo": {
+      "type": "struct",
+      "type_mapping": [
+        ["owner", "AccountKey"],
+        ["amount", "Balance"]
+      ]
+    },
+    "PolymeshVotes": {
+      "type": "struct",
+      "type_mapping": [
+        ["index", "u32"],
+        ["ayes", "Vec<(IdentityId, Balance)>"],
+        ["nays", "Vec<(IdentityId, Balance)>"]
+      ]
+    },
+    "PipId": "u32",
+    "ProposalState": {
+      "type": "enum",
+      "value_list": ["Pending", "Cancelled", "Killed", "Rejected", "Referendum"]
+    },
+    "ReferendumState": {
+      "type": "enum",
+      "value_list": ["Pending", "Scheduled", "Rejected", "Failed", "Executed"]
+    },
+    "ReferendumType": {
+      "type": "enum",
+      "value_list": ["FastTracked", "Emergency", "Community"]
+    },
+    "Pip": {
+      "type": "struct",
+      "type_mapping": [
+        ["id", "PipId"],
+        ["proposal", "Call"],
+        ["state", "ProposalState"]
+      ]
+    },
+    "ProposalData": {
+      "type": "enum",
+      "type_mapping": [
+        ["Hash", "Hash"],
+        ["Proposal", "Vec<u8>"]
+      ]
+    },
+    "Referendum": {
+      "type": "struct",
+      "type_mapping": [
+        ["id", "PipId"],
+        ["state", "ReferendumState"],
+        ["referendum_type", "ReferendumType"],
+        ["enactment_period", "u32"]
+      ]
+    },
+    "TickerTransferApproval": {
+      "type": "struct",
+      "type_mapping": [
+        ["authorized_by", "IdentityId"],
+        ["next_ticker", "Option<Ticker>"],
+        ["previous_ticker", "Option<Ticker>"]
+      ]
+    },
+    "OffChainSignature": "H512",
+    "PermissionedValidator": {
+      "type": "struct",
+      "type_mapping": [["compliance", "Compliance"]]
+    },
+    "Authorization": {
+      "type": "struct",
+      "type_mapping": [
+        ["authorization_data", "AuthorizationData"],
+        ["authorized_by", "Signatory"],
+        ["expiry", "Option<Moment>"],
+        ["auth_id", "u64"]
+      ]
+    },
+    "AuthorizationData": {
+      "type": "enum",
+      "type_mapping": [
+        ["AttestMasterKeyRotation", "IdentityId"],
+        ["RotateMasterKey", "IdentityId"],
+        ["TransferTicker", "Ticker"],
+        ["AddMultiSigSigner", "Null"],
+        ["TransferTokenOwnership", "Ticker"],
+        ["JoinIdentity", "IdentityId"],
+        ["Custom", "Vec<u8>"],
+        ["NoData", "Null"]
+      ]
+    },
+    "AuthIdentifier": {
+      "type": "struct",
+      "type_mapping": [
+        ["signatory", "Signatory"],
+        ["auth_id", "u64"]
+      ]
+    },
+    "Compliance": {
+      "type": "enum",
+      "value_list": ["Pending", "Active"]
+    },
+    "SmartExtensionType": {
+      "type": "enum",
+      "type_mapping": [
+        ["TransferManager", "Null"],
+        ["Offerings", "Null"],
+        ["Custom", "Vec<u8>"]
+      ]
+    },
+    "SmartExtensionName": "String",
+    "SmartExtension": {
+      "type": "struct",
+      "type_mapping": [
+        ["extension_type", "SmartExtensionType"],
+        ["extension_name", "SmartExtensionName"],
+        ["extension_id", "IdentityId"],
+        ["is_archive", "bool"]
+      ]
+    },
+    "ProportionMatch": {
+      "type": "enum",
+      "value_list": ["AtLeast", "MoreThan"]
+    },
+    "AuthorizationNonce": "u64",
+    "Counter": "u64",
+    "Commission": {
+      "type": "enum",
+      "type_mapping": [
+        ["Individual", "Null"],
+        ["Global", "u32"]
+      ]
+    },
+    "RestrictionResult": {
+      "type": "enum",
+      "value_list": ["Valid", "Invalid", "ForceValid"]
+    },
+    "Memo": "[u8; 32]",
+    "IssueRecipient": {
+      "type": "enum",
+      "type_mapping": [
+        ["Account", "AccountKey"],
+        ["Identity", "IdentityId"]
+      ]
+    },
+    "BridgeTx": {
+      "type": "struct",
+      "type_mapping": [
+        ["nonce", "u32"],
+        ["recipient", "AccountId"],
+        ["value", "Balance"],
+        ["tx_hash", "H256"]
+      ]
+    },
+    "PendingTx": {
+      "type": "struct",
+      "type_mapping": [
+        ["did", "IdentityId"],
+        ["bridge_tx", "BridgeTx"]
+      ]
+    },
+    "OfflineSlashingParams": {
+      "type": "struct",
+      "type_mapping": [
+        ["max_offline_percent", "u32"],
+        ["constant", "u32"],
+        ["max_slash_percent", "u32"]
+      ]
+    },
+    "AssetTransferRules": {
+      "type": "struct",
+      "type_mapping": [
+        ["is_paused", "bool"],
+        ["rules", "Vec<AssetTransferRule>"]
+      ]
+    },
+    "Claim1stKey": {
+      "type": "struct",
+      "type_mapping": [
+        ["target", "IdentityId"],
+        ["claim_type", "ClaimType"]
+      ]
+    },
+    "Claim2ndKey": {
+      "type": "struct",
+      "type_mapping": [
+        ["issuer", "IdentityId"],
+        ["scope", "Option<Scope>"]
+      ]
+    },
+    "BatchAddClaimItem": {
+      "type": "struct",
+      "type_mapping": [
+        ["target", "IdentityId"],
+        ["claim", "Claim"],
+        ["expiry", "Option<u64>"]
+      ]
+    },
+    "BatchRevokeClaimItem": {
+      "type": "struct",
+      "type_mapping": [
+        ["target", "IdentityId"],
+        ["claim", "Claim"]
+      ]
+    },
+    "InactiveMember": {
+      "type": "struct",
+      "type_mapping": [
+        ["id", "IdentityId"],
+        ["deactivated_at", "Moment"],
+        ["expiry", "Option<Moment>"]
+      ]
+    },
+    "VotingResult": {
+      "type": "enum",
+      "type_mapping": [
+        ["ayes_count", "u32"],
+        ["ayes_stake", "Balance"],
+        ["nays_count", "u32"],
+        ["nays_stake", "Balance"]
+      ]
+    },
+    "ProtocolOp": {
+      "type": "enum",
+      "value_list": [
+        "AssetRegisterTicker",
+        "AssetIssue",
+        "AssetAddDocument",
+        "AssetCreateToken",
+        "DividendNew",
+        "ComplianceManagerAddActiveRule",
+        "IdentityRegisterDid",
+        "IdentityCddRegisterDid",
+        "IdentityAddClaim",
+        "IdentitySetMasterKey",
+        "IdentityAddSigningItem",
+        "PipsPropose",
+        "VotingAddBallot"
+      ]
+    }
+  },
+  "CddStatus": {
+    "type": "enum",
+    "type_mapping": [
+      ["Ok", "IdentityId"],
+      ["Err", "Vec<u8>"]
+    ]
+  },
+  "AssetDidResult": {
+    "type": "enum",
+    "type_mapping": [
+      ["Ok", "IdentityId"],
+      ["Err", "Vec<u8>"]
+    ]
+  },
+  "DidRecordsSuccess": {
+    "type": "struct",
+    "type_mapping": [
+      ["master_key", "AccountKey"],
+      ["signing_items", "Vec<SigningItem>"]
+    ]
+  },
+  "DidRecords": {
+    "type": "enum",
+    "type_mapping": [
+      ["Success", "DidRecordsSuccess"],
+      ["IdNotFound", "Vec<u8>"]
+    ]
+  },
+  "CappedVoteCountSuccess": {
+    "type": "struct",
+    "type_mapping": [
+      ["ayes", "u64"],
+      ["nays", "u64"]
+    ]
+  },
+  "CappedVoteCount": {
+    "type": "enum",
+    "type_mapping": [
+      ["Success", "CappedVoteCountSuccess"],
+      ["ProposalNotFound", "Vec<u8>"]
+    ]
+  },
+  "Weight": "u32",
+  "BlockNumber": "u32",
+  "BridgeTxStatus": {
+    "type": "enum",
+    "type_mapping": [
+      ["Absent", "Null"],
+      ["Pending", "u8"],
+      ["Frozen", "Null"],
+      ["Timelocked", "Null"],
+      ["Handled", "Null"]
+    ]
+  },
+  "BridgeTxDetail": {
+    "type": "struct",
+    "type_mapping": [
+      ["amount", "Balance"],
+      ["status", "BridgeTxStatus"],
+      ["execution_block", "BlockNumber"],
+      ["tx_hash", "H256"]
+    ]
+  },
+  "CappedFee": "u64"
+}
