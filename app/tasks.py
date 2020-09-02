@@ -39,7 +39,7 @@ from app.processors.converters import PolkascanHarvesterService, HarvesterCouldN
 from scalecodec.exceptions import RemainingScaleBytesNotEmptyException
 from substrateinterface import SubstrateInterface, xxh128
 
-from app.settings import DB_CONNECTION, DEBUG, SUBSTRATE_RPC_URL, TYPE_REGISTRY, FINALIZATION_ONLY
+from app.settings import DB_CONNECTION, DEBUG, SUBSTRATE_RPC_URL, TYPE_REGISTRY, FINALIZATION_ONLY, TYPE_REGISTRY_FILE
 
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
@@ -68,7 +68,7 @@ class BaseTask(celery.Task):
         self.metadata_store = {}
 
     def __call__(self, *args, **kwargs):
-        self.engine = create_engine(DB_CONNECTION, echo=DEBUG, isolation_level="READ_UNCOMMITTED")
+        self.engine = create_engine(DB_CONNECTION, echo=DEBUG, isolation_level="READ_UNCOMMITTED", pool_pre_ping=True)
         session_factory = sessionmaker(bind=self.engine, autoflush=False, autocommit=False)
         self.session = scoped_session(session_factory)
 
@@ -84,8 +84,14 @@ class BaseTask(celery.Task):
 @app.task(base=BaseTask, bind=True)
 def accumulate_block_recursive(self, block_hash, end_block_hash=None):
 
-    harvester = PolkascanHarvesterService(self.session, type_registry=TYPE_REGISTRY)
+    harvester = PolkascanHarvesterService(
+        db_session=self.session,
+        type_registry=TYPE_REGISTRY,
+        type_registry_file=TYPE_REGISTRY_FILE
+    )
+
     harvester.metadata_store = self.metadata_store
+    # harvester.substrate.metadata_cache = self.metadata_store
 
     # If metadata store isn't initialized yet, perform some tests
     if not harvester.metadata_store:
@@ -162,7 +168,11 @@ def start_sequencer(self):
         sequencer_task.value = self.request.id
         sequencer_task.save(self.session)
 
-        harvester = PolkascanHarvesterService(self.session, type_registry=TYPE_REGISTRY)
+        harvester = PolkascanHarvesterService(
+            db_session=self.session,
+            type_registry=TYPE_REGISTRY,
+            type_registry_file=TYPE_REGISTRY_FILE
+        )
         try:
             result = harvester.start_sequencer()
         except BlockIntegrityError as e:
@@ -182,14 +192,18 @@ def start_sequencer(self):
 
 
 @app.task(base=BaseTask, bind=True)
-def rebuilding_search_index(self, search_index_id, truncate=False):
+def rebuilding_search_index(self, search_index_id=None, truncate=False):
     if truncate:
         # Clear search index table
         self.session.execute('delete from analytics_search_index where index_type_id={}'.format(search_index_id))
         self.session.commit()
 
-    harvester = PolkascanHarvesterService(self.session, type_registry=TYPE_REGISTRY)
-    harvester.rebuild_search_index(search_index_id)
+    harvester = PolkascanHarvesterService(
+        db_session=self.session,
+        type_registry=TYPE_REGISTRY,
+        type_registry_file=TYPE_REGISTRY_FILE
+    )
+    harvester.rebuild_search_index()
 
     return {'result': 'index rebuilt'}
 
@@ -253,7 +267,11 @@ def start_generate_analytics(self):
 
 @app.task(base=BaseTask, bind=True)
 def rebuild_search_index(self):
-    harvester = PolkascanHarvesterService(self.session, type_registry=TYPE_REGISTRY)
+    harvester = PolkascanHarvesterService(
+        db_session=self.session,
+        type_registry=TYPE_REGISTRY,
+        type_registry_file=TYPE_REGISTRY_FILE
+    )
     harvester.rebuild_search_index()
 
     return {'result': 'search index rebuilt'}
@@ -261,8 +279,11 @@ def rebuild_search_index(self):
 
 @app.task(base=BaseTask, bind=True)
 def rebuild_account_info_snapshot(self):
-
-    harvester = PolkascanHarvesterService(self.session, type_registry=TYPE_REGISTRY)
+    harvester = PolkascanHarvesterService(
+        db_session=self.session,
+        type_registry=TYPE_REGISTRY,
+        type_registry_file=TYPE_REGISTRY_FILE
+    )
 
     last_full_snapshot_block_nr = 0
 
@@ -322,7 +343,11 @@ def balance_snapshot(self, account_id=None, block_start=1, block_end=None, block
     else:
         accounts = [account.id for account in Account.query(self.session)]
 
-    harvester = PolkascanHarvesterService(self.session, type_registry=TYPE_REGISTRY)
+    harvester = PolkascanHarvesterService(
+        db_session=self.session,
+        type_registry=TYPE_REGISTRY,
+        type_registry_file=TYPE_REGISTRY_FILE
+    )
 
     if block_ids:
         block_range = block_ids
@@ -351,7 +376,16 @@ def balance_snapshot(self, account_id=None, block_start=1, block_end=None, block
 
 @app.task(base=BaseTask, bind=True)
 def update_balances_in_block(self, block_id):
-    harvester = PolkascanHarvesterService(self.session, type_registry=TYPE_REGISTRY)
+    harvester = PolkascanHarvesterService(
+        db_session=self.session,
+        type_registry=TYPE_REGISTRY,
+        type_registry_file=TYPE_REGISTRY_FILE
+    )
+
     harvester.create_full_balance_snaphot(block_id)
     self.session.commit()
+
+    harvester.update_account_balances()
+    self.session.commit()
+
     return 'Snapshot created for block {}'.format(block_id)
