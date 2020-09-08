@@ -664,7 +664,7 @@ def upgrade():
     sa.Column('index', sa.Integer(), nullable=True),
     sa.Column('name', sa.String(length=255), nullable=True),
     sa.Column('lookup', sa.String(length=4), nullable=True),
-    sa.Column('default', sa.String(length=255), nullable=True),
+    sa.Column('default', sa.String(length=300), nullable=True),
     sa.Column('modifier', sa.String(length=64), nullable=True),
     sa.Column('type_hasher', sa.String(length=255), nullable=True),
     sa.Column('type_key1', sa.String(length=255), nullable=True),
