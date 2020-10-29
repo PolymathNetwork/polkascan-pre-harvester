@@ -46,7 +46,7 @@ websockets==8.1
 pydevd-pycharm
 
 py-sr25519-bindings>=0.1.2
-py-bip39-bindings>=0.1.4
+py-bip39-bindings>=0.1.6
 
 polymath-scalecodec>=0.5.0a4
 polymath-substrate-interface>=0.5.0a4
