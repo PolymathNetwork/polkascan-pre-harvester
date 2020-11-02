@@ -11,19 +11,14 @@ ALTER TABLE `polymesh-harvester`.data_event
 ADD COLUMN `event_arg_3` varchar(100) GENERATED ALWAYS AS (attributes->>'$[3].value') STORED NULL AFTER `event_arg_2`;  
 
 ALTER TABLE `polymesh-harvester`.data_event 
-ADD COLUMN `claim_type` varchar(30) GENERATED ALWAYS AS (
-    CASE 
-    WHEN JSON_UNQUOTE(JSON_EXTRACT(JSON_KEYS(attributes, '$[1].value.claim'), '$[0]')) = 'Whitelisted' THEN 'Exempted'
-    WHEN JSON_UNQUOTE(JSON_EXTRACT(JSON_KEYS(attributes, '$[1].value.claim'), '$[0]')) = 'Blacklisted' THEN 'Blocked'
-    ELSE JSON_UNQUOTE(JSON_EXTRACT(JSON_KEYS(attributes, '$[1].value.claim'), '$[0]'))
-END) STORED NULL AFTER `event_arg_3`;  
+ADD COLUMN `claim_type` varchar(30) GENERATED ALWAYS AS (JSON_UNQUOTE(JSON_EXTRACT(JSON_KEYS(attributes, '$[1].value.claim'), '$[0]'))) STORED NULL AFTER `event_arg_3`;  
 
 ALTER TABLE `polymesh-harvester`.data_event 
-ADD COLUMN `claim_scope` varchar(66) GENERATED ALWAYS AS (
+ADD COLUMN `claim_scope` varchar(100) GENERATED ALWAYS AS (
 	CASE 
     WHEN JSON_UNQUOTE(JSON_EXTRACT(JSON_KEYS(attributes, '$[1].value.claim'), '$[0]')) = 'CustomerDueDiligence' THEN null
-    WHEN JSON_UNQUOTE(JSON_EXTRACT(JSON_KEYS(attributes, '$[1].value.claim'), '$[0]')) <> 'Jurisdiction' THEN JSON_UNQUOTE(JSON_EXTRACT(attributes->>'$[1].value.claim[0].*', '$[0]'))
-	ELSE JSON_UNQUOTE(JSON_EXTRACT(JSON_EXTRACT(attributes->>'$[1].value.claim[0].*', '$[0]'), '$.col2'))
+    WHEN JSON_UNQUOTE(JSON_EXTRACT(JSON_KEYS(attributes, '$[1].value.claim'), '$[0]')) <> 'Jurisdiction' THEN JSON_OBJECT('type', JSON_EXTRACT(JSON_KEYS(JSON_EXTRACT(attributes->>'$[1].value.claim[0].*', '$[0]')), '$[0]'), 'value', JSON_EXTRACT(JSON_EXTRACT(attributes->>'$[1].value.claim[0].*', '$[0].*'), '$[0]'))
+	ELSE JSON_OBJECT('type', JSON_EXTRACT(JSON_KEYS(JSON_EXTRACT(JSON_EXTRACT(attributes->>'$[1].value.claim[0].*', '$[0]'), '$.col2')), '$[0]'), 'value', JSON_EXTRACT(JSON_EXTRACT(JSON_EXTRACT(attributes->>'$[1].value.claim[0].*', '$[0]'), '$.col2.*'), '$[0]'))
 END) STORED NULL AFTER `claim_type`;  
             
 ALTER TABLE `polymesh-harvester`.data_event 
