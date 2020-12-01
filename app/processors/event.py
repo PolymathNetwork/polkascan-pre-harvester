@@ -948,8 +948,8 @@ class BalancesTransferProcessor(EventProcessor):
         # VV - POLYMESH customization - Index are changed as Polymath has more arguments in the Transfer event
         search_index = self.add_search_index(
             index_type_id=SEARCH_INDEX_BALANCETRANSFER,
-            account_id=self.event.attributes[2]['value'].replace('0x', ''),
-            sorting_value=self.event.attributes[3]['value']
+            account_id=self.event.attributes[3]['value'].replace('0x', ''),
+            sorting_value=self.event.attributes[4]['value']
         )
 
         search_index.save(db_session)
