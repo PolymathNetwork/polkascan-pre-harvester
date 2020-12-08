@@ -3,7 +3,7 @@ amqp==2.6.0
 atomicwrites==1.3.0
 attrs==19.1.0
 Babel==2.6.0
-base58==1.0.3
+base58==2.0.1
 celery==4.4.6
 certifi==2019.6.16
 chardet==3.0.4
@@ -31,12 +31,12 @@ python-editor==1.0.4
 python-mimeparse==1.6.0
 pytz==2018.9
 redis==3.5.3
-requests==2.22.0
+requests==2.24.0
 requests-mock==1.7.0
 six==1.12.0
 SQLAlchemy==1.3.8
 tornado==5.1.1
-urllib3==1.25.9
+urllib3==1.25.10
 xxhash==1.3.0
 
 # Development
