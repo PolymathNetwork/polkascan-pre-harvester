@@ -17,6 +17,7 @@ ALTER TABLE `polymesh-harvester`.data_event
 ADD COLUMN `claim_scope` varchar(100) GENERATED ALWAYS AS (
 	CASE 
     WHEN JSON_UNQUOTE(JSON_EXTRACT(JSON_KEYS(attributes, '$[1].value.claim'), '$[0]')) = 'CustomerDueDiligence' THEN null
+    WHEN JSON_UNQUOTE(JSON_EXTRACT(JSON_KEYS(attributes, '$[1].value.claim'), '$[0]')) = 'InvestorUniqueness' THEN JSON_OBJECT('type', JSON_EXTRACT(JSON_KEYS(JSON_EXTRACT(JSON_EXTRACT(attributes->>'$[1].value.claim[0].*', '$[0]'), '$.col1')), '$[0]'), 'value', JSON_EXTRACT(JSON_EXTRACT(JSON_EXTRACT(attributes->>'$[1].value.claim[0].*', '$[0]'), '$.col1.*'), '$[0]'))
     WHEN JSON_UNQUOTE(JSON_EXTRACT(JSON_KEYS(attributes, '$[1].value.claim'), '$[0]')) <> 'Jurisdiction' THEN JSON_OBJECT('type', JSON_EXTRACT(JSON_KEYS(JSON_EXTRACT(attributes->>'$[1].value.claim[0].*', '$[0]')), '$[0]'), 'value', JSON_EXTRACT(JSON_EXTRACT(attributes->>'$[1].value.claim[0].*', '$[0].*'), '$[0]'))
 	ELSE JSON_OBJECT('type', JSON_EXTRACT(JSON_KEYS(JSON_EXTRACT(JSON_EXTRACT(attributes->>'$[1].value.claim[0].*', '$[0]'), '$.col2')), '$[0]'), 'value', JSON_EXTRACT(JSON_EXTRACT(JSON_EXTRACT(attributes->>'$[1].value.claim[0].*', '$[0]'), '$.col2.*'), '$[0]'))
 END) STORED NULL AFTER `claim_type`;  
