@@ -47,5 +47,5 @@ pydevd-pycharm
 py-sr25519-bindings>=0.1.2
 py-bip39-bindings>=0.1.6
 
-polymath-scalecodec==0.6.2a2
-polymath-substrate-interface==0.6.2a2
+polymath-scalecodec==2.4.0
+polymath-substrate-interface==2.4.0
